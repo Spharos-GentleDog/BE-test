@@ -1,7 +1,15 @@
-#jdk 17 Image Start
+# server를 위한 dockerfile
+
+FROM openjdk:17-alpine AS builder
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle .
+COPY settings.gradle .
+COPY src src
+RUN chmod +x ./gradlew
+RUN ./gradlew bootJAR
+
 FROM openjdk:17-alpine
-#인자 정리 - jar
-ARG JAR_FILE=build/libs/*.jar
-# jar file copy
-COPY ${JAR_FILE} app.jar
-ENTRYPOINT ["java","-jar", "-Duser.timezone=Asia/Seoul", "/app.jar"]
+COPY --from=builder build/libs/*.jar app.jar
+EXPOSE 8000
+ENTRYPOINT ["java","-jar", "-Duser.timezone=Asia/Seoul", "-Dspring.profiles.active=prod", "/app.jar"]
